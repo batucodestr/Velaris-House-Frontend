@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "CwdZh_SyCmvw8xDEzSLdk"
+uri = "file://artifacts/hotel-reserve/src/assets/velaris-logo.svg"
+type = "image"
+title = "Velaris House Logosu"
+description = "Kemerli kapılı, minimalist konak silüetli logo — espresso kahve ve şampanya altın tonlarında (SVG)."
