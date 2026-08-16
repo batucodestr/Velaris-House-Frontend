@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Butik Otel Rezervasyon"
+description = "Premium bir butik otel rezervasyon sitesi. Oda listeleme, tarih ve misafir seçimi, oda detayları ve rezervasyon akışı içeren, sadece frontend (örnek verilerle) çalışan profesyonel bir web sitesi. Backend daha sonra Django ile bağlanacak."
+version = "1.0.0"
+id = "artifacts/hotel-reserve"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26039
+
+[services.development]
+run = "pnpm --filter @workspace/hotel-reserve run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hotel-reserve", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/hotel-reserve/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26039"
+BASE_PATH = "/"

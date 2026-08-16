@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --app-font-sans: 'DM Sans', sans-serif;
+  --app-font-serif: 'Playfair Display', serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: 0;
+
+  /* Linen / Warm Beige Background */
+  --background: 40 25% 94%;
+  /* Deep Espresso Foreground */
+  --foreground: 30 17% 9%;
+
+  --border: 35 15% 85%;
+  
+  --card: 40 25% 97%;
+  --card-foreground: 30 17% 9%;
+  --card-border: 35 15% 85%;
+
+  --popover: 40 25% 97%;
+  --popover-foreground: 30 17% 9%;
+  --popover-border: 35 15% 85%;
+
+  /* Dark Wood Primary */
+  --primary: 30 20% 14%;
+  --primary-foreground: 40 25% 94%;
+  
+  /* Muted Gold Secondary */
+  --secondary: 40 30% 85%;
+  --secondary-foreground: 30 20% 14%;
+
+  --muted: 40 20% 90%;
+  --muted-foreground: 30 10% 45%;
+
+  --accent: 40 30% 85%;
+  --accent-foreground: 30 20% 14%;
+
+  --destructive: 0 60% 40%;
+  --destructive-foreground: 0 0% 98%;
+
+  --input: 35 15% 85%;
+  --ring: 30 20% 14%;
+
+  --opaque-button-border-intensity: -8;
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.dark {
+  /* Defaulting to light theme as requested, dark mode not priority but leaving fallback values */
+  --background: 30 20% 10%;
+  --foreground: 40 20% 90%;
+  --border: 30 10% 20%;
+  --card: 30 20% 12%;
+  --card-foreground: 40 20% 90%;
+  --card-border: 30 10% 20%;
+  --popover: 30 20% 12%;
+  --popover-foreground: 40 20% 90%;
+  --popover-border: 30 10% 20%;
+  --primary: 40 25% 94%;
+  --primary-foreground: 30 20% 14%;
+  --secondary: 30 20% 20%;
+  --secondary-foreground: 40 20% 90%;
+  --muted: 30 20% 20%;
+  --muted-foreground: 30 10% 60%;
+  --accent: 30 20% 20%;
+  --accent-foreground: 40 20% 90%;
+  --destructive: 0 60% 40%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 30 10% 20%;
+  --ring: 40 25% 94%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-normal;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

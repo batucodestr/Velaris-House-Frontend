@@ -1,6 +1,6 @@
-# [Project name]
+# Velaris House — Butik Otel Rezervasyon
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Premium hissiyatlı, Türkçe, sadece-frontend butik otel rezervasyon sitesi (`artifacts/hotel-reserve`, preview `/`). Veriler `src/data/mock.ts`'de mock; rezervasyonlar localStorage'da. Kullanıcı backend'i kendisi Django ile yapacak — bu repo'ya backend eklenmeyecek, mock veri katmanı API'ye kolay geçiş için izole tutuluyor.
 
 ## Run & Operate
 
