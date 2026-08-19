@@ -1,10 +1,11 @@
 import { Link } from 'wouter';
-import { ROOMS } from '@/data/mock';
+import { useRooms } from '@/services/rooms';
 import hotelLobbyImg from '@assets/generated_images/hotel-lobby.jpg';
 import room2Img from '@assets/generated_images/room-2.jpg';
 
 export default function Home() {
-  const featuredRooms = ROOMS.slice(0, 3);
+  const { data: rooms } = useRooms();
+  const featuredRooms = (rooms ?? []).slice(0, 3);
 
   return (
     <div className="bg-background">

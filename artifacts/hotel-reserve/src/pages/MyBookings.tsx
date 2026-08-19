@@ -1,20 +1,60 @@
-import { useBookings, cancelBooking } from '@/lib/store';
-import { ROOMS } from '@/data/mock';
+import { useState } from 'react';
 import { Link } from 'wouter';
-import { Calendar, User, CreditCard, XCircle } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
+import { useMyReservations, useCancelReservation } from '@/services/reservations';
+import { useRooms } from '@/services/rooms';
+import { getErrorMessage } from '@/lib/api';
+import { Calendar, XCircle, KeyRound, ChevronRight } from 'lucide-react';
 
 export default function MyBookings() {
-  const { bookings } = useBookings();
+  const { auth } = useAuth();
+  const { data: reservations, isLoading, isError } = useMyReservations(!!auth);
+  const { data: rooms } = useRooms();
+  const cancelReservation = useCancelReservation();
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  if (bookings.length === 0) {
+  if (!auth) {
+    return (
+      <div className="pt-32 pb-24 min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-4xl font-serif text-primary mb-4">Giriş Yapmalısınız</h1>
+        <p className="text-muted-foreground mb-8 max-w-md">
+          Rezervasyonlarınızı görüntülemek için hesabınıza giriş yapmanız gerekiyor.
+        </p>
+        <Link
+          href="/giris"
+          className="bg-primary text-primary-foreground px-8 py-3 text-sm uppercase tracking-widest hover:bg-primary/90 transition-colors"
+        >
+          Giriş Yap
+        </Link>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="pt-32 pb-24 min-h-screen bg-background flex items-center justify-center text-muted-foreground">
+        Rezervasyonlar yükleniyor...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="pt-32 pb-24 min-h-screen bg-background flex items-center justify-center text-muted-foreground">
+        Rezervasyonlar yüklenemedi. Lütfen daha sonra tekrar deneyin.
+      </div>
+    );
+  }
+
+  if (!reservations || reservations.length === 0) {
     return (
       <div className="pt-32 pb-24 min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-4xl font-serif text-primary mb-4">Rezervasyonunuz Bulunmuyor</h1>
         <p className="text-muted-foreground mb-8 max-w-md">
           Henüz Velaris House'ta bir konaklama planlamadınız. Sizi ağırlamaktan mutluluk duyarız.
         </p>
-        <Link 
-          href="/odalar" 
+        <Link
+          href="/odalar"
           className="bg-primary text-primary-foreground px-8 py-3 text-sm uppercase tracking-widest hover:bg-primary/90 transition-colors"
         >
           Odaları İncele
@@ -22,6 +62,20 @@ export default function MyBookings() {
       </div>
     );
   }
+
+  const handleRemove = async (id: number, canCancel: boolean) => {
+    const confirmText = canCancel
+      ? 'Rezervasyonunuzu iptal etmek istediğinize emin misiniz?'
+      : 'Bu rezervasyon kaydını kaldırmak istediğinize emin misiniz?';
+    if (!confirm(confirmText)) return;
+
+    setActionError(null);
+    try {
+      await cancelReservation.mutateAsync(id);
+    } catch (err) {
+      setActionError(getErrorMessage(err, 'İşlem gerçekleştirilemedi.'));
+    }
+  };
 
   return (
     <div className="pt-32 pb-24 min-h-screen bg-background">
@@ -31,88 +85,72 @@ export default function MyBookings() {
           <p className="text-muted-foreground">Geçmiş ve gelecek konaklamalarınız.</p>
         </div>
 
+        {actionError && <p className="text-sm text-destructive mb-8">{actionError}</p>}
+
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150">
-          {/* Sorting bookings: newest first */}
-          {[...bookings].reverse().map(booking => {
-            const room = ROOMS.find(r => r.id === booking.roomId);
-            if (!room) return null;
-            
-            const isCancelled = booking.status === 'cancelled';
-            const checkInDate = new Date(booking.checkIn);
+          {reservations.map(reservation => {
+            const room = rooms?.find(r => r.id === reservation.room);
+
+            const isCancelled = reservation.status === 'cancelled';
+            const isCompleted = reservation.status === 'completed';
+            const checkInDate = new Date(reservation.check_in);
             const isPast = checkInDate < new Date();
-            const canCancel = !isCancelled && !isPast;
+            const canCancel = reservation.status === 'active' && !isPast;
 
             return (
-              <div 
-                key={booking.id} 
+              <div
+                key={reservation.id}
                 className={`bg-card border p-6 md:p-8 transition-colors ${
                   isCancelled ? 'border-border/50 opacity-75' : 'border-border'
                 }`}
               >
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-border pb-6">
-                  <div>
-                    <span className="block text-xs uppercase tracking-widest text-muted-foreground mb-1">Rezervasyon Kodu</span>
-                    <span className="text-xl font-mono text-primary tracking-wider">{booking.id}</span>
-                  </div>
-                  <div className={`px-4 py-1.5 text-xs uppercase tracking-widest ${
-                    isCancelled ? 'bg-destructive/10 text-destructive border border-destructive/20' : 
-                    isPast ? 'bg-muted text-muted-foreground border border-border' : 
-                    'bg-secondary/20 text-primary border border-secondary/50'
-                  }`}>
-                    {isCancelled ? 'İptal Edildi' : isPast ? 'Geçmiş' : 'Onaylandı'}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                  <div className="md:col-span-2 flex gap-6">
-                    <div className="w-24 h-24 shrink-0 bg-muted hidden sm:block">
-                      <img src={room.imageUrl} alt={room.name} className={`w-full h-full object-cover ${isCancelled ? 'grayscale' : ''}`} />
-                    </div>
+                <Link href={`/rezervasyonlarim/${reservation.id}`} className="block group">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-border pb-6">
                     <div>
-                      <h3 className="font-serif text-2xl text-primary mb-2">{room.name}</h3>
+                      <span className="block text-xs uppercase tracking-widest text-muted-foreground mb-1">Rezervasyon No</span>
+                      <span className="text-xl font-mono text-primary tracking-wider group-hover:underline">#{reservation.id}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`px-4 py-1.5 text-xs uppercase tracking-widest ${
+                        isCancelled ? 'bg-destructive/10 text-destructive border border-destructive/20' :
+                        isCompleted || isPast ? 'bg-muted text-muted-foreground border border-border' :
+                        'bg-secondary/20 text-primary border border-secondary/50'
+                      }`}>
+                        {isCancelled ? 'İptal Edildi' : isCompleted ? 'Tamamlandı' : isPast ? 'Geçmiş' : 'Onaylandı'}
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-6">
+                    {room && (
+                      <div className="w-24 h-24 shrink-0 bg-muted hidden sm:block">
+                        <img src={room.imageUrl} alt={room.name} className={`w-full h-full object-cover ${isCancelled ? 'grayscale' : ''}`} />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-serif text-2xl text-primary mb-2">{room?.name ?? `Oda #${reservation.room}`}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <Calendar className="w-4 h-4" />
-                        {new Date(booking.checkIn).toLocaleDateString('tr-TR')} - {new Date(booking.checkOut).toLocaleDateString('tr-TR')}
+                        {new Date(reservation.check_in).toLocaleDateString('tr-TR')} - {new Date(reservation.check_out).toLocaleDateString('tr-TR')}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <User className="w-4 h-4" />
-                        {booking.guests} Yetişkin
-                      </div>
+                      {reservation.status === 'active' && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <KeyRound className="w-4 h-4" />
+                          Anahtar Kodu: {reservation.keybox_code}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div>
-                    <span className="block text-xs uppercase tracking-widest text-muted-foreground mb-2">Misafir</span>
-                    <div className="text-sm text-foreground/80">
-                      <p>{booking.guestName}</p>
-                      <p>{booking.guestEmail}</p>
-                      <p>{booking.guestPhone}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <span className="block text-xs uppercase tracking-widest text-muted-foreground mb-2">Toplam Tutar</span>
-                      <div className="flex items-center gap-2 text-primary font-medium">
-                        <CreditCard className="w-4 h-4 text-muted-foreground" />
-                        {booking.totalPrice.toLocaleString('tr-TR')} ₺
-                      </div>
-                    </div>
-                    
-                    {canCancel && (
-                      <button 
-                        onClick={() => {
-                          if(confirm('Rezervasyonunuzu iptal etmek istediğinize emin misiniz?')) {
-                            cancelBooking(booking.id);
-                          }
-                        }}
-                        className="flex items-center justify-center gap-2 mt-6 md:mt-0 w-full text-xs uppercase tracking-widest text-destructive hover:bg-destructive/5 py-2 border border-destructive/20 transition-colors"
-                      >
-                        <XCircle className="w-4 h-4" /> İptal Et
-                      </button>
-                    )}
-                  </div>
-                </div>
+                </Link>
+
+                <button
+                  onClick={() => handleRemove(reservation.id, canCancel)}
+                  disabled={cancelReservation.isPending}
+                  className="flex items-center justify-center gap-2 w-full mt-6 text-xs uppercase tracking-widest text-destructive hover:bg-destructive/5 py-2 border border-destructive/20 transition-colors disabled:opacity-50"
+                >
+                  <XCircle className="w-4 h-4" /> {canCancel ? 'İptal Et' : 'Kaldır'}
+                </button>
               </div>
             );
           })}

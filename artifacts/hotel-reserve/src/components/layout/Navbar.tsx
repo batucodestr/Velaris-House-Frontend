@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth';
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { auth, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -23,18 +25,39 @@ export default function Navbar() {
     { href: '/rezervasyonlarim', label: 'Rezervasyonlarım' },
   ];
 
+  // The transparent-over-hero look only works on the home page, where a dark
+  // hero image sits behind the navbar. On every other page there's just the
+  // plain light background right underneath, so dark-on-transparent text
+  // would be unreadable — those pages always get the solid navbar.
+  const isHome = location === '/';
+  const transparent = isHome && !scrolled;
+
   return (
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-        scrolled ? 'bg-background/90 backdrop-blur-md border-b border-border py-4 shadow-sm' : 'bg-transparent py-6'
+        scrolled
+          ? 'bg-background/90 backdrop-blur-md border-b border-border py-4 shadow-sm'
+          : transparent
+            ? 'bg-transparent py-6'
+            : 'bg-background border-b border-border py-6'
       )}
     >
       <div className="container mx-auto px-6 md:px-12 flex items-center justify-between">
         <Link href="/" className="group">
-          <div className="text-2xl font-serif tracking-widest text-foreground group-hover:text-primary transition-colors">
+          <div
+            className={cn(
+              'text-2xl font-serif tracking-widest group-hover:text-primary transition-colors',
+              transparent ? 'text-white' : 'text-foreground'
+            )}
+          >
             VELARIS
-            <span className="block text-[0.6rem] tracking-[0.3em] text-muted-foreground uppercase mt-1">
+            <span
+              className={cn(
+                'block text-[0.6rem] tracking-[0.3em] uppercase mt-1',
+                transparent ? 'text-white/70' : 'text-muted-foreground'
+              )}
+            >
               House
             </span>
           </div>
@@ -48,7 +71,9 @@ export default function Navbar() {
               href={link.href}
               className={cn(
                 'text-sm tracking-wide uppercase transition-colors hover:text-primary',
-                location === link.href ? 'text-primary font-medium' : 'text-muted-foreground'
+                location === link.href
+                  ? transparent ? 'text-white font-medium' : 'text-primary font-medium'
+                  : transparent ? 'text-white/80' : 'text-muted-foreground'
               )}
             >
               {link.label}
@@ -60,11 +85,40 @@ export default function Navbar() {
           >
             Rezervasyon Yap
           </Link>
+          {auth ? (
+            <div className="flex items-center gap-4">
+              <span className={cn('text-sm', transparent ? 'text-white/80' : 'text-muted-foreground')}>
+                {auth.username}
+              </span>
+              <button
+                onClick={() => {
+                  logout();
+                  setLocation('/');
+                }}
+                className={cn(
+                  'text-sm tracking-wide uppercase hover:text-primary transition-colors',
+                  transparent ? 'text-white/80' : 'text-muted-foreground'
+                )}
+              >
+                Çıkış Yap
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/giris"
+              className={cn(
+                'text-sm tracking-wide uppercase hover:text-primary transition-colors',
+                transparent ? 'text-white/80' : 'text-muted-foreground'
+              )}
+            >
+              Giriş Yap
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Toggle */}
         <button
-          className="md:hidden p-2 text-foreground"
+          className={cn('md:hidden p-2', transparent ? 'text-white' : 'text-foreground')}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -94,6 +148,26 @@ export default function Navbar() {
           >
             Rezervasyon Yap
           </Link>
+          {auth ? (
+            <button
+              onClick={() => {
+                logout();
+                setMobileMenuOpen(false);
+                setLocation('/');
+              }}
+              className="text-sm tracking-wide uppercase text-muted-foreground py-2 text-left"
+            >
+              Çıkış Yap ({auth.username})
+            </button>
+          ) : (
+            <Link
+              href="/giris"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm tracking-wide uppercase text-muted-foreground py-2"
+            >
+              Giriş Yap
+            </Link>
+          )}
         </div>
       )}
     </header>

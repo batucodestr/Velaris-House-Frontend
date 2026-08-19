@@ -1,0 +1,14 @@
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm notice run workspace@0.0.0 npx
+npm notice run pnpm --filter @workspace/hotel-reserve run dev
+$ vite --config vite.config.ts --host 0.0.0.0
+
+  [32m[1mVITE[22m v7.3.6[39m  [2mready in [0m[1m451[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.20.208.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.104:[1m5173[22m/[39m
+C:\Users\ASUS\Documents\Velaris-House-Frontend\artifacts\hotel-reserve:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/hotel-reserve@0.0.0 dev: `vite --config vite.config.ts --host 0.0.0.0`
+Exit status 1

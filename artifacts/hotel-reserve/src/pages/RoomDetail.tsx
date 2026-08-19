@@ -1,15 +1,26 @@
 import { useState } from 'react';
 import { useRoute, Link, useLocation } from 'wouter';
-import { ROOMS, AMENITY_LABELS } from '@/data/mock';
+import { useRooms, useRoomDetail } from '@/services/rooms';
+import { AMENITY_LABELS } from '@/data/mock';
 import { Users, Maximize, Bed, Check } from 'lucide-react';
 
 export default function RoomDetail() {
   const [, params] = useRoute('/odalar/:slug');
   const [, setLocation] = useLocation();
-  const room = ROOMS.find(r => r.slug === params?.slug);
+  const { data: rooms, isLoading: roomsLoading } = useRooms();
+  const summary = rooms?.find((r) => r.slug === params?.slug);
+  const { data: room, isLoading: detailLoading } = useRoomDetail(summary?.id);
   const [activeImage, setActiveImage] = useState(0);
 
-  if (!room) {
+  if (roomsLoading || (summary && detailLoading)) {
+    return (
+      <div className="min-h-screen pt-32 flex items-center justify-center text-muted-foreground">
+        Yükleniyor...
+      </div>
+    );
+  }
+
+  if (!summary || !room) {
     return (
       <div className="min-h-screen pt-32 flex flex-col items-center text-center px-6">
         <h1 className="text-4xl font-serif text-primary mb-4">Oda Bulunamadı</h1>
@@ -27,9 +38,9 @@ export default function RoomDetail() {
     <div className="pt-24 pb-24 min-h-screen bg-background">
       {/* Gallery Header */}
       <div className="relative h-[60vh] min-h-[400px] w-full bg-primary mb-16 animate-in fade-in duration-1000">
-        <img 
-          src={room.gallery[activeImage] || room.imageUrl} 
-          alt={room.name} 
+        <img
+          src={room.gallery[activeImage] || room.imageUrl}
+          alt={room.name}
           className="w-full h-full object-cover opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent"></div>
@@ -43,29 +54,31 @@ export default function RoomDetail() {
 
       <div className="container mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-          
+
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-16">
-            
+
             <section className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150 fill-mode-both">
               <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-6 border-b border-border pb-4">Oda Detayları</h2>
               <p className="text-lg text-foreground leading-relaxed font-light">
                 {room.description}
               </p>
             </section>
-            
-            <section className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both">
-              <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-6 border-b border-border pb-4">Özellikler</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
-                {room.amenities.map(amenity => (
-                  <div key={amenity} className="flex items-center gap-3 text-foreground/80">
-                    <Check className="w-4 h-4 text-secondary-foreground" />
-                    <span>{AMENITY_LABELS[amenity]}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-            
+
+            {room.amenities.length > 0 && (
+              <section className="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both">
+                <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-6 border-b border-border pb-4">Özellikler</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
+                  {room.amenities.map(amenity => (
+                    <div key={amenity} className="flex items-center gap-3 text-foreground/80">
+                      <Check className="w-4 h-4 text-secondary-foreground" />
+                      <span>{AMENITY_LABELS[amenity]}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
           </div>
 
           {/* Sidebar / Booking Card */}
@@ -77,7 +90,7 @@ export default function RoomDetail() {
                   {room.pricePerNight.toLocaleString('tr-TR')} ₺
                 </div>
               </div>
-              
+
               <div className="space-y-6 mb-8 text-sm text-foreground/80">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -86,7 +99,7 @@ export default function RoomDetail() {
                   </div>
                   <span className="font-medium">{room.capacity} Kişi</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Maximize className="w-5 h-5 text-muted-foreground" />
@@ -94,17 +107,19 @@ export default function RoomDetail() {
                   </div>
                   <span className="font-medium">{room.sizeSqm} m²</span>
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Bed className="w-5 h-5 text-muted-foreground" />
-                    <span>Yatak</span>
+
+                {room.bedType && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Bed className="w-5 h-5 text-muted-foreground" />
+                      <span>Yatak</span>
+                    </div>
+                    <span className="font-medium">{room.bedType}</span>
                   </div>
-                  <span className="font-medium">{room.bedType}</span>
-                </div>
+                )}
               </div>
-              
-              <button 
+
+              <button
                 onClick={handleBooking}
                 className="w-full bg-primary text-primary-foreground py-4 text-sm uppercase tracking-widest hover:bg-primary/90 transition-colors"
               >
@@ -112,7 +127,7 @@ export default function RoomDetail() {
               </button>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>
